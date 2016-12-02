@@ -13,6 +13,6 @@ class post extends model
 	 */
 	public function getAll()
 	{
-		return $this->fetchAll('SELECT * FROM post ORDER BY created DESC');
+		return $this->fetchAll('SELECT * FROM post');
 	}
 }
