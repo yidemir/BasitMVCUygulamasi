@@ -9,6 +9,6 @@ class defaultController extends controller
 		$data['title'] = 'Ana Sayfa';
 
 		// app/views/index.php görünümünü gösterelim
-		$this->render('index.php', $data); 
+		$this->render('index', $data); 
 	}
 }
