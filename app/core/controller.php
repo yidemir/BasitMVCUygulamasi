@@ -57,10 +57,11 @@ class controller
 
 	/**
 	 * URL oluşturur
+	 * Bu sınıfı görünüm dosyası içinde rahat kullanmak için statik yaptık
 	 * @return string URL
 	 */
-	public function url()
+	public static function url()
 	{
-		return '/?url='.implode('/', func_get_args());
+		return URL.'/?url='.implode('/', func_get_args());
 	}
 }
