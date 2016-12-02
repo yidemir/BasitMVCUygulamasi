@@ -6,6 +6,7 @@ define('CORE_DIR', APP_DIR.'/core'); // Çekirdek dizini
 define('MDIR', APP_DIR.'/models'); // Model dizini
 define('VDIR', APP_DIR.'/views'); // View dizini
 define('CDIR', APP_DIR.'/controllers'); // Controller dizini
+define('URL', 'http://localhost'); // Sistemin çalışacağı URL
 
 // Veritabanı ayarlamalarını yapıyoruz
 // Eğer ki veritabanı işlemi yapmayacaksak ayarlamak şart değil
