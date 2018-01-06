@@ -7,19 +7,20 @@ class app
 	 * __construct metodu ile belirleyip
 	 * run metodu ile kullanacağız
 	 */
-	public $controller, $action, $params;
+	public $controller, $action, $params, $routes;
 
 	/**
 	 * Controller ve Action'ı belirleyen başlatıcı metod
+	 * @param array $routes Rota değerlerini alır
 	 */
-	public function __construct()
+	public function __construct(array $routes)
 	{
 		/**
 		 * Eğer url sorgusu varsa, başındaki ve
 		 * sonundaki / işaretlerini siliyoruz
 		 * yoksa geçerli olarak default/index
 		 */
-		$url = isset($_GET['url']) && !empty($_GET['url']) ? 
+		$url = isset($_GET['url']) && !empty($_GET['url']) ?
 			trim($_GET['url'], '/') : 'default/index';
 
 		/**
@@ -44,10 +45,15 @@ class app
 		array_shift($url);
 
 		/**
-		 * $url[0] ve $url[1]'i aldık, gerisi parametre. 
-		 * Yani default/index/1/2/3'ün 1/2/3 olan yeri. 
+		 * $url[0] ve $url[1]'i aldık, gerisi parametre.
+		 * Yani default/index/1/2/3'ün 1/2/3 olan yeri.
 		 */
 		$this->params = $url;
+
+		/**
+		 * Rotaları sınıfa dahil ediyoruz, başka bir metod içinde kullanmak üzere
+		 */
+		$this->routes = $routes;
 	}
 
 	/**
@@ -67,17 +73,74 @@ class app
 				if (method_exists($controller, $this->action)) {
 					// call_user_func ile controller ve metodu çağırıyoruz
 					call_user_func_array([$controller, $this->action], $this->params);
-				// Eğer method yoksa programdan çık
+				// Eğer method yoksa rotacıyı başlat
 				} else {
-					exit("Metod mevcut değil: {$this->action}");
+					return $this->startRouter();
 				}
-			// Sınıf yoksa ve yaratılmamışsa programdan çık
+			// Sınıf yoksa ve yaratılmamışsa rotacıyı başlat
 			} else {
-				exit("Sınıf mevcut değil: $this->controller");
+				return $this->startRouter();
 			}
-		// Controller dosyası yoksa programdan çık
+		// Controller dosyası yoksa rotacıyı başlat
 		} else {
-			exit("Controller dosyası mevcut değil: {$this->controller}.php");
+			return $this->startRouter();
+		}
+	}
+
+	protected function startRouter()
+	{
+		// Eğer $routes doluysa (boş değilse) ve dize (array) ise
+		if (!empty($this->routes) && is_array($this->routes)) {
+
+			// URL'yi alıyoruz
+			$url = rtrim(@$_GET['url'], '/');
+
+			// Sayfa bulunamadı değişkeni false ise sıkıntı yok
+			// Ama true olursa en sonda sayfa bulunamadı hatasını göstereceğiz
+			$notFound = false;
+
+			// index.php dosyasındaki $routes dizesindeki değerleri işlemek için
+			// foreach döngüsüne sokuyoruz bunun manası şu
+			// "/rota" => "kontrolcü:aksiyon"
+			// $path => $controller : $action
+			foreach ($this->routes as $path => $controllerAction) {
+				// list fonksiyonu ve explode fonksiyonu ne işe yarar öğrenin
+				list($controller, $action) = explode(':', $controllerAction);
+
+				$path = str_replace(':param', '([^/]+)', $path);
+
+				// Eğer ki orta URL'deki değerle eşleşirse işlem yapalım
+				if (preg_match("@^$path$@ixs", $url, $params)) {
+
+					// Eğer controller dosyası varsa
+					if (file_exists($file = CDIR."/{$controller}.php")) {
+						// Dosyayı çağır
+						require_once $file;
+						// Eğer sınıf mevcutsa
+						if (class_exists($controller)) {
+							// sınıfı $class değişkenine ata
+							$class = new $controller;
+							// Eğer method mevcutsa her şey tamam
+							if (method_exists($class, $action)) {
+								// $params dizesinden ilk öğeyi at/çıkar
+								array_shift($params);
+
+								// controller ve aksiyonu çalıştır! bitti.
+								return call_user_func_array([$class, $action], array_values($params));
+							} else { $notFound = true; } // çünkü method mevcut değil
+						} else { $notFound = true; } // çünkü sınıf mevcut değil
+					} else { $notFound = true; } // çünkü controller mevcut değil
+				} else { $notFound = true; } // çünkü böyle bir rota tanımlanmamış!
+			}
+
+			// Eğer ki $notFound true ise
+			if ($notFound) {
+				// İstemciye göndereceğimiz istek kodu 404 yani sayfa bulunamadı
+				http_response_code(404);
+				echo '<meta charset="utf-8">';
+				echo 'Aradığınız sayfa bulunamadı!';
+				exit; // çık/sonrasını gösterme
+			}
 		}
 	}
 }

@@ -21,8 +21,18 @@ require CORE_DIR.'/model.php';
 require CORE_DIR.'/view.php';
 require CORE_DIR.'/controller.php';
 
+// Rota verilerini oluşturuyoruz
+$routes = [
+	'anasayfa' => 'defaultController:indexAction',
+	'testet' => 'testController:indexAction',
+	'isim/:param' => 'testController:isimGosterAction',
+	'isim/:param/:param' => 'testController:isimSoyisimGosterAction',
+	'test/json' => 'testController:jsonTestAction'
+];
+
 // Uygulamamızı oluşturuyoruz
-$app = new app;
+// Rota verilerini sınıfa veriyoruz
+$app = new app($routes);
 
 // ve oluşturduğumuz uygulamayı çalıştırıyoruz
 $app->run();
