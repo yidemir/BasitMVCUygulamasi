@@ -1,0 +1,8 @@
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	# Options +FollowSymLinks
+	RewriteBase /
+	RewriteCond %{REQUEST_URI} !index.php
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteRule ^([0-9a-zA-Z-_/]+)(/?)$ index.php?url=$1 [L,NC]
+</IfModule>
